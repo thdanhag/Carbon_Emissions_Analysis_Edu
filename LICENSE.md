@@ -112,7 +112,7 @@ Electrical Equipment and Machinery has the highest carbon-emissions industry, mo
 ## The highest carbon emissions company
 ```
 SELECT com.company_name,
-       ROUND(AVG(pro.carbon_footprint_pcf)) AS avg_carbon
+       ROUND(AVG(pro.carbon_footprint_pcf),2) AS avg_carbon
 FROM product_emissions AS pro 
 LEFT JOIN companies AS com
 ON pro.company_id = com.id
@@ -123,19 +123,19 @@ LIMIT 5;
 *The result*
 | company_name                           | avg_carbon | 
 | -------------------------------------: | ---------: | 
-| "Gamesa Corporación Tecnológica, S.A." | 2444616    | 
-| "Hino Motors, Ltd."                    | 191687     | 
-| Arcelor Mittal                         | 83504      | 
-| Weg S/A                                | 53552      | 
-| Daimler AG                             | 43089      | 
+| "Gamesa Corporación Tecnológica, S.A." | 2444616.00 | 
+| "Hino Motors, Ltd."                    | 191687.00  | 
+| Arcelor Mittal                         | 83503.50   | 
+| Weg S/A                                | 53551.67   | 
+| Daimler AG                             | 43089.19   |  
 #### Conclusion
 Gamesa Corporación Tecnológica, S.A. is the highest carbon emissions company, nearly 13 times of carbon emissions with the second place.
 
-## The highest carbon emissions country?
+## The highest carbon emissions country
 
 ```
 SELECT coun.country_name,
-       ROUND(avg(pro.carbon_footprint_pcf)) AS avg_carbon
+       ROUND(avg(pro.carbon_footprint_pcf),2) AS avg_carbon
 FROM product_emissions AS pro 
 LEFT JOIN countries AS coun
 ON pro.country_id = coun.id
@@ -146,11 +146,11 @@ LIMIT 5;
 *The result*
 | country_name | avg_carbon | 
 | -----------: | ---------: | 
-| Spain        | 699009     | 
-| Luxembourg   | 83504      | 
-| Germany      | 33600      | 
-| Brazil       | 9408       | 
-| South Korea  | 5666       | 
+| Spain        | 699009.29  | 
+| Luxembourg   | 83503.50   | 
+| Germany      | 33600.37   | 
+| Brazil       | 9407.61    | 
+| South Korea  | 5665.61    | 
 
  #### Conclusion
  Spain is the highest carbon emissions country.
@@ -176,10 +176,15 @@ The amount of carbon emitted into the world tends to increase gradually and peak
 
 ## The most industries notable decrease in carbon footprints (PCFs) over time
 
+To know the most notable industry decrease, we will set the values in 2015 (the peak milestone) into the old value, and 2017 (the last milestone) is the new value.
+
+To retrieve the values of 2017 and 2015, we will utilize WITH (CTE) to create 2 fake table and then combine them to calculate the difference and percentage change.
+Because reusability improves query readability and modularity more than sub queries.
+
 ```
 WITH carbon_2015 AS (
                    SELECT ind.industry_group as industry,
-                          ROUND(SUM(carbon_footprint_pcf)) AS total_carbon
+                          ROUND(SUM(carbon_footprint_pcf),2) AS total_carbon
                    FROM product_emissions AS pro 
                    LEFT JOIN industry_groups AS ind
                    ON pro.industry_group_id = ind.id
@@ -187,7 +192,7 @@ WITH carbon_2015 AS (
   		              ),
     carbon_2017 AS (
                   	SELECT ind.industry_group as industry,
-                  	       ROUND(SUM(carbon_footprint_pcf)) AS total_carbon
+                  	       ROUND(SUM(carbon_footprint_pcf),2) AS total_carbon
                   	FROM product_emissions AS pro 
                 	  LEFT JOIN industry_groups AS ind
                 	  ON pro.industry_group_id = ind.id
@@ -195,20 +200,20 @@ WITH carbon_2015 AS (
   		              )		
 SELECT carbon_2017.industry,
        carbon_2017.total_carbon - carbon_2015.total_carbon as diff,
-       ((carbon_2017.total_carbon - carbon_2015.total_carbon)/carbon_2015.total_carbon)*100 as pct_change
+       ROUND((((carbon_2017.total_carbon - carbon_2015.total_carbon)/carbon_2015.total_carbon)*100),2) as pct_change
 FROM carbon_2017 LEFT JOIN carbon_2015
 ON carbon_2017.industry =  carbon_2015.industry
 ORDER BY diff;
 ```
 *The result*
-| industry                           | diff   | pct_change | 
-| ---------------------------------: | -----: | ---------: | 
-| Commercial & Professional Services | [NULL] | [NULL]     | 
-| Materials                          | [NULL] | [NULL]     | 
-| Technology Hardware & Equipment    | -78565 | -74.0083   | 
-| Software & Services                | -22166 | -96.9811   | 
-| "Food, Beverage & Tobacco"         | 3162   | [NULL]     | 
-| Capital Goods                      | 91444  | 2608.9586  | 
+| industry                           | diff      | pct_change | 
+| ---------------------------------: | --------: | ---------: | 
+| Commercial & Professional Services | [NULL]    | [NULL]     | 
+| Materials                          | [NULL]    | [NULL]     | 
+| Technology Hardware & Equipment    | -78565.00 | -74.01     | 
+| Software & Services                | -22166.00 | -96.98     | 
+| "Food, Beverage & Tobacco"         | 3162.00   | [NULL]     | 
+| Capital Goods                      | 91444.00  | 2608.96    | 
 
 #### Conclusion
 Comparing to the amout carbon in 2015, Sofware & Services, and Technology Hardware & Equipment are the only two industries with the carbon emissions reduced, by 78,565 and 22,166 PCF. In particular, the Software & Services industry has almost reduced carbon emissions to the world by about 97%.
